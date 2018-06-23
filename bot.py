@@ -14,12 +14,11 @@ from linebot.models import (
 app = Flask(__name__)
 
 # 環境変数読み込み
-line_messaging_api_token = os.environ['LINE_MESSAGING_API_TOKEN']
-line_messaging_api_secret = os.environ['LINE_MESSAGING_API_SECRET']
-# base_url = os.environ['BOT_BASE_URL']
+line_channel_access_token = os.environ['LINE_CHANNEL_ACCESS_TOKEN']
+line_channel_secret = os.environ['LINE_CHANNEL_SECRET']
 
-line_bot_api = LineBotApi(line_messaging_api_token)
-handler = WebhookHandler(line_messaging_api_secret)
+line_bot_api = LineBotApi(line_channel_access_token)
+handler = WebhookHandler(line_channel_secret)
 
 
 @app.route("/callback", methods=['POST'])

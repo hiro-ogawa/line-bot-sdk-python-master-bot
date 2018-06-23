@@ -1,0 +1,16 @@
+{
+    "name": "line-bot-sdk-master-bot",
+    "description": "line-bot-sdk-master-bot",
+    "keywords": [
+      "python"
+    ],
+    "env": {
+      "LINE_CHANNEL_SECRET": {
+        "description": "LINE Channel Secret"
+      },
+      "LINE_CHANNEL_ACCESS_TOKEN": {
+        "description": "LINE Channel Access Token"
+      }
+    }
+  }
+  
