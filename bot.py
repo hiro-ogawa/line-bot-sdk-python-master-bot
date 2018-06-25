@@ -15,6 +15,7 @@ app = Flask(__name__)
 # 環境変数読み込み
 line_channel_access_token = os.environ['LINE_CHANNEL_ACCESS_TOKEN']
 line_channel_secret = os.environ['LINE_CHANNEL_SECRET']
+debug = os.environ.get('DEBUG', 'False') == 'True'
 
 line_bot_api = LineBotApi(line_channel_access_token)
 handler = WebhookHandler(line_channel_secret)
@@ -53,48 +54,70 @@ def is_connection_check(event):
 @handler.default()
 def default(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
     if is_connection_check(event):
         return
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=event.message.text))
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=event.message.text))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image_message(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=VideoMessage)
 def handle_video_message(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=AudioMessage)
 def handle_audio_message(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=StickerMessage)
 def handle_sticker_message(event):
     if is_connection_check(event):
         return
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=FileMessage)
 def handle_file_message(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(FollowEvent)
 def handle_follow_event(event):
@@ -108,8 +131,7 @@ def handle_follow_event(event):
     print(profile.status_message)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text='Welcome'))
-    # reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=str(event)))
     reply_msgs.append(TextSendMessage(text=profile.display_name))
     reply_msgs.append(TextSendMessage(text=profile.user_id))
     if profile.picture_url:
@@ -132,20 +154,31 @@ def get_member_profile(event, uid):
         return line_bot_api.get_room_member_profile(rid, uid)
 
 def get_member_ids(event):
-    if event.source.type == 'group':
-        gid = event.source.group_id
-        return line_bot_api.get_group_member_ids(gid)
-    if event.source.type == 'room':
-        rid = event.source.room_id
-        return line_bot_api.get_room_member_ids(rid)
+    # 認証済アカウントである必要あり
+    try:
+        if event.source.type == 'group':
+            gid = event.source.group_id
+            return line_bot_api.get_group_member_ids(gid)
+        if event.source.type == 'room':
+            rid = event.source.room_id
+            return line_bot_api.get_room_member_ids(rid)
+    except LineBotApiError as e:
+        print(e.status_code)
+        print(e.error.message)
+        print(e.error.details)
+        return []
 
 @handler.add(JoinEvent)
 def handle_join_event(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
 
     uids = get_member_ids(event)
-    
+    print(uids)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=str(uids)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(LeaveEvent)
 def handle_leave_event(event):
@@ -154,13 +187,19 @@ def handle_leave_event(event):
 @handler.add(PostbackEvent)
 def handle_postback_event(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(BeaconEvent)
 def handle_beacon_event(event):
     print(event)
-    # line_bot_api.reply_message(event.reply_token, text=event)
+
+    reply_msgs = []
+    reply_msgs.append(TextSendMessage(text=str(event)))
+    line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=debug)
