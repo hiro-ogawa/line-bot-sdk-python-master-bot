@@ -93,7 +93,29 @@ def get_message_string(m):
     l.append('id: {}'.format(m.id))
     if m.type == 'text':
         l.append('text: {}'.format(m.text))
+    if m.type == 'location':
+        l.append('title: {}'.format(m.title))
+        l.append('address: {}'.format(m.address))
+        l.append('latitude: {}'.format(m.latitude))
+        l.append('longitude: {}'.format(m.longitude))
+    if m.type == 'sticker':
+        l.append('package_id: {}'.format(m.package_id))
+        l.append('sticker_id: {}'.format(m.sticker_id))
+    if m.type == 'file':
+        l.append('file_size: {}'.format(m.file_size))
+        l.append('file_name: {}'.format(m.file_name))
 
+    ret = '\n'.join(l)
+    return ret
+
+def get_message_event_string(e):
+    l = [
+        'type: {}'.format(e.type),
+        'timestamp: {}'.format(e.timestamp),
+        get_source_string(e.source),
+        'reply_token: {}'.format(e.reply_token),
+        get_message_string(e.message),
+    ]
     ret = '\n'.join(l)
     return ret
 
@@ -103,12 +125,7 @@ def handle_text_message(event):
         return
 
     reply_msgs = []
-    # reply_msgs.append(TextSendMessage(text=str(event)))
-    reply_msgs.append(TextSendMessage(text='type: {}'.format(event.type)))
-    reply_msgs.append(TextSendMessage(text='timestamp: {}'.format(event.timestamp)))
-    reply_msgs.append(TextSendMessage(text=get_source_string(event.source)))
-    reply_msgs.append(TextSendMessage(text='reply_token: {}'.format(event.reply_token)))
-    reply_msgs.append(TextSendMessage(text='message: {}'.format(get_message_string(event.message))))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=ImageMessage)
@@ -116,7 +133,7 @@ def handle_image_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=VideoMessage)
@@ -124,7 +141,7 @@ def handle_video_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=AudioMessage)
@@ -132,7 +149,7 @@ def handle_audio_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=LocationMessage)
@@ -140,7 +157,7 @@ def handle_location_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=StickerMessage)
@@ -150,7 +167,7 @@ def handle_sticker_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=FileMessage)
@@ -158,28 +175,23 @@ def handle_file_message(event):
     print(event)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text=get_message_event_string(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(FollowEvent)
 def handle_follow_event(event):
     print(event)
-    
-    profile = line_bot_api.get_profile(event.source.user_id)
 
-    print(profile.display_name)
-    print(profile.user_id)
-    print(profile.picture_url)
-    print(profile.status_message)
+    l = [
+        'type: {}'.format(event.type),
+        'timestamp: {}'.format(event.timestamp),
+        get_source_string(event.source),
+        'reply_token: {}'.format(event.reply_token),
+    ]
+    msg = '\n'.join(l)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
-    reply_msgs.append(TextSendMessage(text=profile.display_name))
-    reply_msgs.append(TextSendMessage(text=profile.user_id))
-    if profile.picture_url:
-        reply_msgs.append(TextSendMessage(text=profile.picture_url))
-    if profile.status_message:
-        reply_msgs.append(TextSendMessage(text=profile.status_message))
+    reply_msgs.append(TextSendMessage(text=msg))
 
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
@@ -214,12 +226,17 @@ def get_member_ids(event):
 def handle_join_event(event):
     print(event)
 
-    uids = get_member_ids(event)
-    print(uids)
+    l = [
+        'type: {}'.format(event.type),
+        'timestamp: {}'.format(event.timestamp),
+        get_source_string(event.source),
+        'reply_token: {}'.format(event.reply_token),
+    ]
+    msg = '\n'.join(l)
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
-    reply_msgs.append(TextSendMessage(text=str(uids)))
+    reply_msgs.append(TextSendMessage(text=msg))
+
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(LeaveEvent)
@@ -230,17 +247,38 @@ def handle_leave_event(event):
 def handle_postback_event(event):
     print(event)
 
+    l = [
+        'type: {}'.format(event.type),
+        'timestamp: {}'.format(event.timestamp),
+        get_source_string(event.source),
+        'reply_token: {}'.format(event.reply_token),
+        'postback:',
+        'postback.data: {}'.format(event.postback.data),
+        'postback.params: {}'.format(event.postback.params),
+    ]
+    msg = '\n'.join(l)
+
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
-    line_bot_api.reply_message(event.reply_token, reply_msgs)
+    reply_msgs.append(TextSendMessage(text=msg))
 
 @handler.add(BeaconEvent)
 def handle_beacon_event(event):
     print(event)
 
+    l = [
+        'type: {}'.format(event.type),
+        'timestamp: {}'.format(event.timestamp),
+        get_source_string(event.source),
+        'reply_token: {}'.format(event.reply_token),
+        'beacon:',
+        'beacon.type: {}'.format(event.beacon.type),
+        'beacon.hwid: {}'.format(event.beacon.hwid),
+        'beacon.device_message: {}'.format(event.beacon.device_message),
+    ]
+    msg = '\n'.join(l)
+
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
-    line_bot_api.reply_message(event.reply_token, reply_msgs)
+    reply_msgs.append(TextSendMessage(text=msg))
 
 
 if __name__ == "__main__":
