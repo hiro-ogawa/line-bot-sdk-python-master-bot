@@ -56,8 +56,46 @@ def default(event):
     print(event)
 
     reply_msgs = []
+    reply_msgs.append(TextSendMessage(text='Not impremented'))
     reply_msgs.append(TextSendMessage(text=str(event)))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
+
+def get_user_info_string_list(uid):
+    l = []
+    p = line_bot_api.get_profile(uid)
+    l.append('profile:')
+    l.append('display_name: {}'.format(p.display_name))
+    l.append('user_id: {}'.format(p.user_id))
+    if p.picture_url:
+        l.append('picture_url: {}'.format(p.picture_url))
+    if p.status_message:
+        l.append('status_message: {}'.format(p.status_message))
+    return l
+
+def get_source_string(s):
+    l = []
+    l.append('source:')
+    l.append('type: {}'.format(s.type))
+    if s.type == 'group':
+        l.append('group_id: {}'.format(s.group_id))
+    elif s.type == 'room':
+        l.append('room_id: {}'.format(s.room_id))
+    l.append('user_info:')
+    l.extend(get_user_info_string_list(s.user_id))
+
+    ret = '\n'.join(l)
+    return ret
+
+def get_message_string(m):
+    l = []
+    l.append('message:')
+    l.append('type: {}'.format(m.type))
+    l.append('id: {}'.format(m.id))
+    if m.type == 'text':
+        l.append('text: {}'.format(m.text))
+
+    ret = '\n'.join(l)
+    return ret
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
@@ -65,8 +103,12 @@ def handle_text_message(event):
         return
 
     reply_msgs = []
-    reply_msgs.append(TextSendMessage(text=str(event)))
-    reply_msgs.append(TextSendMessage(text=event.message.text))
+    # reply_msgs.append(TextSendMessage(text=str(event)))
+    reply_msgs.append(TextSendMessage(text='type: {}'.format(event.type)))
+    reply_msgs.append(TextSendMessage(text='timestamp: {}'.format(event.timestamp)))
+    reply_msgs.append(TextSendMessage(text=get_source_string(event.source)))
+    reply_msgs.append(TextSendMessage(text='reply_token: {}'.format(event.reply_token)))
+    reply_msgs.append(TextSendMessage(text='message: {}'.format(get_message_string(event.message))))
     line_bot_api.reply_message(event.reply_token, reply_msgs)
 
 @handler.add(MessageEvent, message=ImageMessage)
