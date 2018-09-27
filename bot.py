@@ -80,8 +80,9 @@ def get_source_string(s):
         l.append('group_id: {}'.format(s.group_id))
     elif s.type == 'room':
         l.append('room_id: {}'.format(s.room_id))
-    l.append('user_info:')
-    l.extend(get_user_info_string_list(s.user_id))
+    if s.user_id:
+        l.append('user_info:')
+        l.extend(get_user_info_string_list(s.user_id))
 
     ret = '\n'.join(l)
     return ret
